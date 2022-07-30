@@ -52,7 +52,7 @@ local function start_read(stream, stdout, stderr, bufnr, parser, ns)
   ---@param diagnostics_bufnr number
   local buf_publish = function(diagnostics, diagnostics_bufnr)
     assert(type(diagnostics) == 'table')
-    assert(diagnostics == {} or diagnostics[0], vim.inspect(diagnostics) .. ' is not array like') -- must be array like
+    assert(diagnostics == {} or diagnostics[0] ~= nil, vim.inspect(diagnostics) .. ' is not array like') -- must be array like
     -- By the time the linter is finished the user might have deleted the buffer
     if api.nvim_buf_is_valid(diagnostics_bufnr) then
       vim.diagnostic.set(ns, diagnostics, diagnostics_bufnr)
