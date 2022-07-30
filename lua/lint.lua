@@ -62,7 +62,7 @@ local function start_read(stream, stdout, stderr, bufnr, parser, ns)
 
     -- By the time the linter is finished the user might have deleted the buffer
     if api.nvim_buf_is_valid(diagnostics_bufnr) then
-      vim.diagnostic.set(ns, diagnostics, diagnostics_bufnr)
+      vim.diagnostic.set(ns, diagnostics_bufnr, diagnostics)
     end
   end
 
