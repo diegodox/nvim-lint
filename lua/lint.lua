@@ -54,7 +54,10 @@ local function start_read(stream, stdout, stderr, bufnr, parser, ns)
     assert(type(diagnostics) == 'table')
     assert(
       diagnostics == {} or diagnostics[0] ~= nil,
-      vim.inspect(diagnostics) .. ' is not array like (diagnostics[0] is nil' .. diagnostics[0] ~= nil .. ')'
+      vim.inspect(diagnostics)
+        .. ' is not array like (diagnostics[0] is nil: '
+        .. vim.inspect(diagnostics[0] ~= nil)
+        .. ')'
     ) -- must be array like
 
     -- By the time the linter is finished the user might have deleted the buffer
