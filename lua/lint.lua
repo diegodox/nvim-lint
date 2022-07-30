@@ -48,13 +48,29 @@ local function read_output(bufnr, parser, publish_fn)
 end
 
 local function start_read(stream, stdout, stderr, bufnr, parser, ns)
-  local publish = function(diagnostics)
-    -- if diagnostics[0] then
-
+  ---@param diagnostics table[]
+  ---@param diagnostics_bufnr number
+  local buf_publish = function(diagnostics, diagnostics_bufnr)
+    assert(type(diagnostics) == 'table')
+    assert(diagnostics == {} or diagnostics[0], vim.inspect(diagnostics) .. ' is not array like') -- must be array like
     -- By the time the linter is finished the user might have deleted the buffer
-    if api.nvim_buf_is_valid(bufnr) then
-      vim.diagnostic.set(ns, bufnr, diagnostics)
+    if api.nvim_buf_is_valid(diagnostics_bufnr) then
+      vim.diagnostic.set(ns, diagnostics, diagnostics_bufnr)
     end
+  end
+
+  ---@param diagnostics table<number, table[]>|table[]
+  local publish = function(diagnostics)
+    if diagnostics == {} or diagnostics[0] then
+      -- assume diagnostics is list
+      buf_publish(diagnostics, bufnr)
+    else
+      -- assume diagnostics is key:value map (key: bufnr, val: diagnostic list)
+      for diagnostics_bufnr, buf_diagnostics in pairs(diagnostics) do
+        buf_publish(buf_diagnostics, diagnostics_bufnr)
+      end
+    end
+
     stdout:shutdown()
     stdout:close()
     stderr:shutdown()
