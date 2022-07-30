@@ -8,7 +8,6 @@ else
 end
 local M = {}
 
-
 M.linters = setmetatable({}, {
   __index = function(tbl, key)
     local ok, linter = pcall(require, 'lint.linters.' .. key)
@@ -19,15 +18,14 @@ M.linters = setmetatable({}, {
   end,
 })
 
-
 M.linters_by_ft = {
-  text = {'vale',},
-  markdown = {'vale',},
-  rst = {'vale',},
-  ruby = {'ruby',},
-  inko = {'inko',},
-  clojure = {'clj-kondo',},
-  dockerfile = {'hadolint',},
+  text = { 'vale' },
+  markdown = { 'vale' },
+  rst = { 'vale' },
+  ruby = { 'ruby' },
+  inko = { 'inko' },
+  clojure = { 'clj-kondo' },
+  dockerfile = { 'hadolint' },
 }
 
 local namespaces = setmetatable({}, {
@@ -35,9 +33,8 @@ local namespaces = setmetatable({}, {
     local ns = api.nvim_create_namespace(key)
     rawset(tbl, key, ns)
     return ns
-  end
+  end,
 })
-
 
 local function read_output(bufnr, parser, publish_fn)
   return function(err, chunk)
@@ -50,9 +47,10 @@ local function read_output(bufnr, parser, publish_fn)
   end
 end
 
-
 local function start_read(stream, stdout, stderr, bufnr, parser, ns)
   local publish = function(diagnostics)
+    -- if diagnostics[0] then
+
     -- By the time the linter is finished the user might have deleted the buffer
     if api.nvim_buf_is_valid(bufnr) then
       vim.diagnostic.set(ns, bufnr, diagnostics)
@@ -75,7 +73,6 @@ local function start_read(stream, stdout, stderr, bufnr, parser, ns)
   end
 end
 
-
 function M._resolve_linter_by_ft(ft)
   local names = M.linters_by_ft[ft]
   if names then
@@ -94,13 +91,12 @@ function M._resolve_linter_by_ft(ft)
   return vim.tbl_keys(dedup_linters)
 end
 
-
 function M.try_lint(names)
   assert(
     vim.diagnostic,
     "nvim-lint requires neovim 0.6.0+. If you're using an older version, use the `nvim-05` tag of nvim-lint'"
   )
-  if type(names) == "string" then
+  if type(names) == 'string' then
     names = { names }
   end
   if not names then
@@ -110,7 +106,7 @@ function M.try_lint(names)
   local lookup_linter = function(name)
     local linter = M.linters[name]
     assert(linter, 'Linter with name `' .. name .. '` not available')
-    if type(linter) == "function" then
+    if type(linter) == 'function' then
       linter = linter()
     end
     linter.name = linter.name or name
@@ -125,7 +121,6 @@ function M.try_lint(names)
   end
 end
 
-
 local function eval_fn_or_id(x)
   if type(x) == 'function' then
     return x()
@@ -133,7 +128,6 @@ local function eval_fn_or_id(x)
     return x
   end
 end
-
 
 function M.lint(linter)
   assert(linter, 'lint must be called with a linter')
@@ -153,20 +147,20 @@ function M.lint(linter)
   end
   if linter.env then
     env = {}
-    if not linter.env["PATH"] then
+    if not linter.env['PATH'] then
       -- Always include PATH as we need it to execute the linter command
-      table.insert(env, "PATH=" .. os.getenv("PATH"))
+      table.insert(env, 'PATH=' .. os.getenv('PATH'))
     end
     for k, v in pairs(linter.env) do
-      table.insert(env, k .. "=" .. v)
+      table.insert(env, k .. '=' .. v)
     end
   end
   local opts = {
     args = args,
-    stdio = {stdin, stdout, stderr},
+    stdio = { stdin, stdout, stderr },
     env = env,
     cwd = vim.fn.getcwd(),
-    detached = false
+    detached = false,
   }
   local cmd = eval_fn_or_id(linter.cmd)
   assert(cmd, 'Linter definition must have a `cmd` set: ' .. vim.inspect(linter))
@@ -187,14 +181,8 @@ function M.lint(linter)
   if type(parser) == 'function' then
     parser = require('lint.parser').accumulate_chunks(parser)
   end
-  assert(
-    parser.on_chunk and type(parser.on_chunk == 'function'),
-    'Parser requires a `on_chunk` function'
-  )
-  assert(
-    parser.on_done and type(parser.on_done == 'function'),
-    'Parser requires a `on_done` function'
-  )
+  assert(parser.on_chunk and type(parser.on_chunk == 'function'), 'Parser requires a `on_chunk` function')
+  assert(parser.on_done and type(parser.on_done == 'function'), 'Parser requires a `on_done` function')
   local ns = namespaces[linter.name]
   start_read(linter.stream, stdout, stderr, bufnr, parser, ns)
   if linter.stdin then
@@ -211,6 +199,5 @@ function M.lint(linter)
     stdin:close()
   end
 end
-
 
 return M
