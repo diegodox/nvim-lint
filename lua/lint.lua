@@ -53,10 +53,10 @@ local function start_read(stream, stdout, stderr, bufnr, parser, ns)
   local buf_publish = function(diagnostics, diagnostics_bufnr)
     assert(type(diagnostics) == 'table')
     assert(
-      diagnostics == {} or diagnostics[0] ~= nil,
+      diagnostics == {} or diagnostics[0] == nil,
       vim.inspect(diagnostics)
         .. ' is not array like (diagnostics[0] is nil: '
-        .. vim.inspect(diagnostics[0] ~= nil)
+        .. vim.inspect(diagnostics[0] == nil)
         .. ')'
     ) -- must be array like
 
